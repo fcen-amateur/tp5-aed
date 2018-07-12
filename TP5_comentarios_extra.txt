@@ -1,0 +1,3 @@
+1) TP5 Ejercicio 1: está mal expresado tal vez en el enunciado pero lo aclaro acá, la idea es que hagan PRIMERO el clustering y luego proyecten los datos en un plot de dos dimensiones determinado por las dos primeras componentes principales, con un color distinto para cada cluster.
+
+2) TP5 Ejercicio 2: para la órbita, usen muchos puntos, quizás 1000, y eventualmente un épsilon pequeño, para que quede bien marcada la diferencia entre ambos.

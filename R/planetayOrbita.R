@@ -31,7 +31,7 @@ rifa <- sample( 1:200, 200, replace=F )
 
 planeta_y_anillo <- tibble("x" = x[c(rifa)],"y"= y[c(rifa)] )
 
-write_rds(planeta_y_anillo,"../data/planeta_y_anillo.rds")
+saveRDS(planeta_y_anillo,"../data/planeta_y_anillo.rds")
 
 planeta_y_anillo %>% ggplot() +
 	geom_point() +

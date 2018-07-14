@@ -1,0 +1,168 @@
+---
+title: "TP5 Análisis Exploratorio de Datos"
+author: "Barrera Borla, Berros & Duarte"
+date: "16 de julio de 2018 EC"
+output:
+  pdf_document: default
+  html_document: default
+runtime: shiny
+---
+
+Cargamos librerías y código auxiliar:
+
+```{r}
+library(tidyverse)
+library(glue)
+
+source("R/leer_dataset.R")
+source("R/pca.R")
+source("R/k_medias.R")
+source("R/helpers.R")
+```
+
+```
+# TODO: Borrar esto antes de entregar:
+
+# 1.1
+# Ejercicio 1 (PCA + K-medias)
+
+# Consideremos el dataset wine, con información sobre una muestra de diversos
+# tipos de vino. Proceda a graficar en un mismo plot los scores de las dos primeras
+# componentes principales del dataset, discriminando con colores en función de
+# un procedimiento de clustering de k-medias con k = 3.
+# Nota: es recomendable un posible primer paso de estandarización de los
+# datos.
+
+# Comentario extra de Lucas:
+
+# 1) TP5 Ejercicio 1: está mal expresado tal vez en el enunciado pero lo aclaro
+# acá, la idea es que hagan PRIMERO el clustering y luego proyecten los datos en
+# un plot de dos dimensiones determinado por las dos primeras componentes
+# principales, con un color distinto para cada cluster.
+```
+
+# 1.1 PCA y K-medias
+
+Leemos y escalamos el dataset. La razón para centrar cada columna en cero es
+que el PCA se computa más fácilmente de ese modo. La razón para estandarizar
+cada columna (dividiendo por el desvío) es para compensar la diferencia
+de unidades entre las varialbes del dataset. Sin la estandarización, las
+variables con mayor valor absoluto de varianza cooptarían los primeros
+componentes principales de un PCA, por un lado, y dominarían también el cálculo
+de distancias euclídeas al centroide en el algoritmo K-medias.
+
+```{r}
+wine <- leer_dataset("data/wine.txt")
+wine_escalado <- scale(wine) %>% as_tibble
+```
+
+Agrupamos los datos utilizando el algoritmo **K-medias**. Tras algunas pruebas
+a mano, decidimos que el dataset puede dividirse en 3 grupos.
+
+```{r}
+wine_clusterizado <- k_medias(
+  wine_escalado,
+  k = 3,
+  max_iteraciones = 50,
+  verboso = T
+)
+```
+
+Queremos ver cuán bien agrupados están los datos con K-medias, pero
+el dataset tiene 13 dimensiones, lo que dificulta su visualización.
+
+Vamos a realizar entonces un **análisis de componentes principales (PCA)** para
+obtener unos pocos ejes (componentes principales o PCs), sobre los cuales
+proyectar los datos y poder así visualizar el agrupamiento.
+
+```{r}
+pca <- analisis_de_componentes_principales(wine_escalado)
+pc_varianzas <- pca$varianza_explicada
+```
+
+Observemos el porcentaje de varianza explicado al considerar progresivamente más
+componentes principales:
+
+```{r cache=F}
+porcentaje_varianza <- tibble(
+  PC = names(pca$varianza_explicada),
+  porcentaje_varianza = pca$varianza_explicada * 100,
+  porcentaje_varianza_explicada = cumsum(porcentaje_varianza)
+)
+
+porcentaje_varianza %>%
+  ggplot() +
+    aes(x = PC, y = porcentaje_varianza_explicada) +
+    geom_point() +
+    ggtitle("4 PCs acumulan el 70% de varianza del dataset") +
+    geom_hline(yintercept = 70, color = "SteelBlue",
+               linetype = "dashed", size = 0.4) +
+    geom_vline(xintercept = 4, color = "SteelBlue",
+               linetype = "dashed", size = 0.4) +
+    scale_x_discrete(limits = porcentaje_varianza$PC) +
+    scale_y_continuous(breaks = seq(0, 100, by = 10), limits = c(0, 100))
+```
+
+Puede apreciarse que con 4 componentes principales resumimos el 70% de la
+varianza total del dataset.
+
+Grafiquemos el agrupamiento de K-medias proyectado sobre los primeros 4
+componentes principales.
+
+```{r cache=F}
+pca_con_clusters <-
+  pca$X %>% 
+  mutate(cluster_id = wine_clusterizado$cluster_id)
+
+graficar_pca <- function(pc_x, pc_y) {
+  pcx_var <- ratio_a_porcentaje(pca$varianza_explicada[[pc_x]])
+  pcy_var <- ratio_a_porcentaje(pca$varianza_explicada[[pc_y]])
+
+  fig <- pca_con_clusters %>%
+    ggplot() +
+    aes_string(x = pc_x, y = pc_y, color = "cluster_id") +
+    geom_point() +
+    ggtitle(glue("Análisis de componentes principales: {pc_x} vs. {pc_y}")) +
+    xlab(glue("{pc_x} ({pcx_var}% varianza)")) +
+    ylab(glue("{pc_y} ({pcy_var}% varianza)"))
+  
+  ggsave(fig, filename = glue("imgs/{pc_x}_{pc_y}.png"))
+  return (fig)
+}
+
+fig1 <- graficar_pca("PC1", "PC2")
+fig2 <- graficar_pca("PC3", "PC4")
+
+print(fig1)
+print(fig2)
+```
+
+```
+# TODO: Borrar esto antes de entregar:
+
+# 1.2
+# Ejercicio 2 (DBSCAN)
+
+# Considere el siguiente esquema de generación de datos:
+#   1. Primer conjunto (“el planeta”), generar 100 datos en R 2 con la siguiente
+#      receta:
+#   (a) Generar n = 100 radios R i con distribución uniforme U (0, 1).
+#   (b) Generar n = 100 ángulos θ i con distribución uniforme U (0, 2π).
+#   (c) En base a eso, definir X i ∈ R 2 como X i = (R i cos(θ i ), R i sin(θ i )).
+
+#   2. Segundo conjunto (“la órbita”), generar 100 datos en R 2 con la siguiente
+#      receta:
+#   (a) Generar n = 100 radios R i con distribución uniforme U (1.5, 2.5).
+#   (b) Generar n = 100 ángulos θ i con distribución uniforme U (0, 2π).
+#   (c) En base a eso, definir X i ∈ R 2 como X i = (R i cos(θ i ), R i sin(θ i )).
+
+# Plotear en un mismo gráfico ambos datasets. Implemente un esquema
+# de DBSCAN, con parámetros bien elegidos, para poder “separar” los dos
+# conjuntos (“planeta” y “órbita”) en dos clusters.
+
+# Comentario extra de Lucas:
+
+# 2) TP5 Ejercicio 2: para la órbita, usen muchos puntos, quizás 1000, y
+# eventualmente un épsilon pequeño, para que quede bien marcada la diferencia
+# entre ambos.
+```

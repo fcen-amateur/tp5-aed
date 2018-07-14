@@ -22,27 +22,6 @@ source("R/k_medias.R")
 source("R/helpers.R")
 ```
 
-```
-# TODO: Borrar esto antes de entregar:
-
-# 1.1
-# Ejercicio 1 (PCA + K-medias)
-
-# Consideremos el dataset wine, con información sobre una muestra de diversos
-# tipos de vino. Proceda a graficar en un mismo plot los scores de las dos primeras
-# componentes principales del dataset, discriminando con colores en función de
-# un procedimiento de clustering de k-medias con k = 3.
-# Nota: es recomendable un posible primer paso de estandarización de los
-# datos.
-
-# Comentario extra de Lucas:
-
-# 1) TP5 Ejercicio 1: está mal expresado tal vez en el enunciado pero lo aclaro
-# acá, la idea es que hagan PRIMERO el clustering y luego proyecten los datos en
-# un plot de dos dimensiones determinado por las dos primeras componentes
-# principales, con un color distinto para cada cluster.
-```
-
 # 1.1 PCA y K-medias
 
 Leemos y escalamos el dataset. La razón para centrar cada columna en cero es

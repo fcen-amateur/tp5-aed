@@ -17,24 +17,24 @@ distancia_a_un_punto <- function ( X, ind) {
 #Para que sea más fácil iterar el algoritmo principal, las tareas de arranque las hace este: Añade la columna de clase y una que indica si el punto es ruido. Esta va a servir para poder ir restando los puntos ya evaluados y que no parezca que los remanentes son ruido cuando en realidad ya son parte de una clase que fue borrada. Además, elige el primer integrante de la primera clase.
 
 preparar_para_acumular <- function(X) {
-  X <- mutate ( X, clase = rep( as.integer(0) ) , ruido = rep(NaN), evaluado = F)
+  X <- mutate (X, clase = 0 , ruido = NaN, evaluado = F)
   inicial <- sample( 1:length(X$x),1  )
   X[inicial,]$clase <- 1
   return(X)
 }
 
 buscar_p <- function(X,ultima_clase) {
-  for (i in  1:length(X[,1]) ) {
+  for (i in  1:dim(X)[1] ) {
     vec <- X[i,]
-    if (vec$evaluado == F && vec$clase==ultima_clase) { return(list(indice=i,clase=ultima_clase)) }
+    if (!vec$evaluado && vec$clase==ultima_clase) { return(list(indice=i,clase=ultima_clase,clase_nueva=F)) }
   }
-  for (i in 1:length(X[,1]) ) {
+  for (i in  1:dim(X)[1] ) {
     vec <- X[i,]
-    if (vec$evaluado == F) { return( list(indice=i,clase=ultima_clase+1)  )}
+    if (!vec$evaluado && vec$clase == 0) { return( list(indice=i,clase=ultima_clase+1,clase_nueva=T)  )}
     }
 }
 
-acumulacion <- function( X, eps, umbral, ultima_clase ) {
+acumulacion <- function( X, eps, umbral, ultima_clase=1 ) {
 #Este algoritmo organiza el proceso, la idea es que sea iterativo. Espera una tabla preparada previamente con el algoritmo "preparar para acumular".
   busqueda <- buscar_p(X,ultima_clase)
   indice_punto <- busqueda$indice 
@@ -47,7 +47,8 @@ acumulacion <- function( X, eps, umbral, ultima_clase ) {
 			      (  ( ( ( x - x_p )^2 + ( y - y_p )^2) < eps^2 ) & (clase==0) ) ,
 			      ultima_clase ,
 			      clase)
-	       ) 
+	       )
+  
 }
 
 set.seed(42)

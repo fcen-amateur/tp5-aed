@@ -23,16 +23,21 @@ preparar_para_acumular <- function(X) {
   return(X)
 }
 
-buscar_p <- function(X) {
-  for i in (1:length(X[,1])) {
+buscar_p <- function(X,ultima_clase) {
+  for (i in  1:length(X[,1]) ) {
     vec <- X[i,]
-    if vec$evaluado == F && vec$
-  } 
+    if (vec$evaluado == F && vec$clase==ultima_clase) { return(list(indice=i,clase=ultima_clase)) }
+  }
+  for (i in 1:length(X[,1]) ) {
+    vec <- X[i,]
+    if (vec$evaluado == F) { return( list(indice=i,clase=ultima_clase+1)  )}
+    }
 }
 
 acumulacion <- function( X, eps, umbral, ultima_clase ) {
 #Este algoritmo organiza el proceso, la idea es que sea iterativo. Espera una tabla preparada previamente con el algoritmo "preparar para acumular".
-  indice_punto <- which( X$clase != 0 ) %>% first 
+  busqueda <- buscar_p(X,ultima_clase)
+  indice_punto <- busqueda$indice 
   x_p <- X[indice_punto,]$x
   y_p <- X[indice_punto,]$y
   X[indice_punto,]$evaluado <- T
@@ -46,5 +51,6 @@ acumulacion <- function( X, eps, umbral, ultima_clase ) {
 }
 
 set.seed(42)
+
 X <- preparar_para_acumular(planeta_y_anillo)
 X_2 <- acumulacion(X,0.4,10,1)

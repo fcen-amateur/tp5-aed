@@ -31,11 +31,11 @@ rifa <- sample( 1:200, 200, replace=F )
 
 planeta_y_anillo <- tibble("x" = x[c(rifa)],"y"= y[c(rifa)] )
 
-saveRDS(planeta_y_anillo,"../data/planeta_y_anillo.rds")
+saveRDS(planeta_y_anillo,"data/planeta_y_anillo.rds")
 
 planeta_y_anillo %>% ggplot() +
 	geom_point() +
 	aes(x=x,y=y)
-ggsave("../imgs/planeta.png")
+ggsave("imgs/planeta.png")
 
 

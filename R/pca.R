@@ -16,6 +16,7 @@ analisis_de_componentes_principales <- function(df) {
   return (list(
     X = componentes_principales,
     varianza_total = varianza_total,
-    varianza_explicada = varianza_explicada
+    varianza_explicada = varianza_explicada,
+    matriz_de_autovectores = matriz_de_autovectores
   ))
 }

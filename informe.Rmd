@@ -14,6 +14,8 @@ Cargamos librerías y código auxiliar:
 library(tidyverse)
 library(glue)
 
+set.seed(42)
+
 source("R/leer_dataset.R")
 source("R/pca.R")
 source("R/k_medias.R")
@@ -105,6 +107,28 @@ porcentaje_varianza %>%
 
 Puede apreciarse que con 4 componentes principales resumimos el 70% de la
 varianza total del dataset.
+
+Por otro lado, graficamos los vectores de carga de los primeros dos componentes
+principales para las 13 variables del dataset, de modo de identificar si algunas
+variables particulares se llevan la mayor parte de la varianza:
+
+```{r}
+vectores_de_carga <-
+  pca$matriz_de_autovectores %>%
+  as_tibble %>%
+  mutate(predictor = names(wine)) %>%
+  rename(PC1 = V1, PC2 = V2)
+
+fig1 <-
+  vectores_de_carga %>%
+  ggplot(aes(PC1, PC2)) +
+  geom_point() +
+  geom_label(mapping = aes(label = predictor), nudge_y = 0.05) +
+  coord_cartesian(xlim = c(-0.5, 0.5), ylim = c(-0.5, 0.5))
+
+ggsave(fig1, filename = "vectores_de_carga.png")
+print(fig1)
+```
 
 Grafiquemos el agrupamiento de K-medias proyectado sobre los primeros 4
 componentes principales.

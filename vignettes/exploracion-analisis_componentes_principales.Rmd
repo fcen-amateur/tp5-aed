@@ -1,0 +1,43 @@
+```{r message=FALSE, warning = FALSE}
+library(tidyverse)
+library(assertthat)
+
+set.seed(42)
+
+source("R/leer_dataset.R")
+source("R/pca.R")
+
+```
+
+# Comparación con `base::prcomp`
+
+La función base de R que computa los componentes principales de una matriz de diseño / dataframe `X` es `prcomp`
+
+```{r}
+vino <- leer_dataset("vino")
+resultados <-list(
+  # Por defecto prcomp no escala las varianzas a la unidad, lo forzamos
+  prcomp = prcomp(vino, scale = T),
+  acp = analisis_de_componentes_principales(vino)
+)
+```
+
+Si nuestra función está bien implementada,
+- la matriz de autovectores es igual a la matriz de "rotación" con los "vectores de carga" de cada componente principal,
+```{r}
+assert_that(all(near(
+  resultados[["prcomp"]]$matriz_de_autovectores,
+  resultados[["acp"]]$rotation)))
+```
+- las proyecciones de los datos en la dirección de las componentes principales coinciden, salvo por el signo y
+```{r}
+assert_that(all(near(
+  abs(resultados[["prcomp"]]$x),
+  abs(resultados[["acp"]]$Z))))
+```
+- los autovalores asociados a cada CP coinciden con la varianza en dicha dirección
+```{r}
+assert_that(all(near(
+  resultados[["prcomp"]]$sdev^2,
+  resultados[["acp"]]$autovalores)))
+```

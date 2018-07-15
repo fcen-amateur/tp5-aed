@@ -103,10 +103,22 @@ vectores_de_carga <-
 
 fig_loadings <-
   vectores_de_carga %>%
-  ggplot(aes(PC1, PC2)) +
+  ggplot(aes(PC1, PC2))
+
+for (i in 1:nrow(vectores_de_carga)) {
+  xend <- vectores_de_carga[[i, "PC1"]]
+  yend <- vectores_de_carga[[i, "PC2"]]
+  fig_loadings <-
+    fig_loadings +
+    geom_segment(x = 0, y = 0, xend = xend, yend = yend,
+                 alpha = 0.35, color = "SteelBlue")
+}
+
+fig_loadings <-
+  fig_loadings +
   geom_point() +
   ggtitle("Carga por variable en los dos primeros componentes principales") +
-  geom_label(mapping = aes(label = predictor), nudge_y = 0.05) +
+  geom_label(mapping = aes(label = predictor), alpha = 0.65) +
   geom_hline(yintercept = 0, alpha = 0.25) +
   geom_vline(xintercept = 0, alpha = 0.25) +
   coord_cartesian(xlim = c(-0.5, 0.5), ylim = c(-0.5, 0.5))

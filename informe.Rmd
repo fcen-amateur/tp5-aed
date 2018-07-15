@@ -6,7 +6,6 @@ output:
   html_document: default
   pdf_document: 
     latex_engine: xelatex
-# runtime: shiny
 ---
 
 Cargamos librerías y código auxiliar:
@@ -28,7 +27,7 @@ source("R/helpers.R")
 Leemos y escalamos el dataset. La razón para centrar cada columna en cero es
 que el PCA se computa más fácilmente de ese modo. La razón para estandarizar
 cada columna (dividiendo por el desvío) es para compensar la diferencia
-de unidades entre las varialbes del dataset. Sin la estandarización, las
+de unidades entre las variables del dataset. Sin la estandarización, las
 variables con mayor valor absoluto de varianza cooptarían los primeros
 componentes principales de un PCA, por un lado, y dominarían también el cálculo
 de distancias euclídeas al centroide en el algoritmo K-medias.
@@ -39,45 +38,45 @@ wine_escalado <- scale(wine) %>% as_tibble
 ```
 
 Agrupamos los datos utilizando el algoritmo **K-medias**. Tras algunas pruebas
-a mano, decidimos que el dataset puede dividirse en 3 grupos.
+a mano, decidimos que el dataset puede dividirse en 3 grupos, pero de todos
+modos computamos la clusterización para varios valores de k:
 
 ```{r}
-wine_clusterizado <- k_medias(
-  wine_escalado,
-  k = 3,
-  max_iteraciones = 50,
-  verboso = T
-)
+resultados_k_means <-
+  tibble(k = 2:6) %>%
+  mutate(categorias = map(k, ~k_medias(wine_escalado, k = .x, verboso = T))) %>%
+  mutate(categorias = map(categorias, ~.x$cluster_id))
+
+categorias_por_k <- resultados_k_means$categorias
+names(categorias_por_k) <- resultados_k_means$k
 ```
 
-Queremos ver cuán bien agrupados están los datos con K-medias, pero
+Queremos ver cuán bien fueron agrupados los datos con K-medias, pero
 el dataset tiene 13 dimensiones, lo que dificulta su visualización.
-
 Vamos a realizar entonces un **análisis de componentes principales (PCA)** para
 obtener unos pocos ejes (componentes principales o PCs), sobre los cuales
 proyectar los datos y poder así visualizar el agrupamiento.
 
 ```{r}
-pca <- analisis_de_componentes_principales(wine_escalado)
-pc_varianzas <- pca$varianza_explicada
+pca <- analisis_de_componentes_principales(select(wine_escalado, -obs_id))
 ```
 
 Observemos el porcentaje de varianza explicado al considerar progresivamente más
 componentes principales:
 
-```{r cache=F}
+```{r}
 porcentaje_varianza <- tibble(
   PC = names(pca$varianza_explicada),
   porcentaje_varianza = pca$varianza_explicada * 100,
-  porcentaje_varianza_explicada = cumsum(porcentaje_varianza)
+  porcentaje_varianza_acumulada = cumsum(porcentaje_varianza)
 )
 
 porcentaje_varianza %>%
   ggplot() +
-    aes(x = PC, y = porcentaje_varianza_explicada) +
+    aes(x = PC, y = porcentaje_varianza_acumulada) +
     geom_point() +
-    ggtitle("4 PCs acumulan el 70% de varianza del dataset") +
-    geom_hline(yintercept = 70, color = "SteelBlue",
+    ggtitle("4 PCs acumulan más del 70% de varianza del dataset") +
+    geom_hline(yintercept = 73.6, color = "SteelBlue",
                linetype = "dashed", size = 0.4) +
     geom_vline(xintercept = 4, color = "SteelBlue",
                linetype = "dashed", size = 0.4) +
@@ -85,40 +84,46 @@ porcentaje_varianza %>%
     scale_y_continuous(breaks = seq(0, 100, by = 10), limits = c(0, 100))
 ```
 
-Puede apreciarse que con 4 componentes principales resumimos el 70% de la
-varianza total del dataset.
+Puede apreciarse que con 4 componentes principales resumimos más del 70% de la
+varianza total del dataset. Sin embargo, la estructura más interesante se
+observa con los PC1 y PC2, de modo que nos limitaremos a graficar esos
+componentes.
 
-Por otro lado, graficamos los vectores de carga de los primeros dos componentes
-principales para las 13 variables del dataset, de modo de identificar si algunas
-variables particulares se llevan la mayor parte de la varianza:
+Por otro lado, graficamos las "cargas" (_loadings_) de los dos primeros
+componentes principales para las 13 variables del dataset, de modo de
+identificar si algunas variables particulares se llevan la mayor parte de la
+varianza:
 
 ```{r}
 vectores_de_carga <-
   pca$matriz_de_autovectores %>%
   as_tibble %>%
-  mutate(predictor = names(wine)) %>%
+  mutate(predictor = names(select(wine, -obs_id))) %>%
   rename(PC1 = V1, PC2 = V2)
 
-fig1 <-
+fig_loadings <-
   vectores_de_carga %>%
   ggplot(aes(PC1, PC2)) +
   geom_point() +
+  ggtitle("Carga por variable en los dos primeros componentes principales") +
   geom_label(mapping = aes(label = predictor), nudge_y = 0.05) +
+  geom_hline(yintercept = 0, alpha = 0.25) +
+  geom_vline(xintercept = 0, alpha = 0.25) +
   coord_cartesian(xlim = c(-0.5, 0.5), ylim = c(-0.5, 0.5))
 
-ggsave(fig1, filename = "vectores_de_carga.png")
-print(fig1)
+ggsave(fig_loadings, filename = "imgs/cargas_PC1_PC2.png")
+print(fig_loadings)
 ```
 
-Grafiquemos el agrupamiento de K-medias proyectado sobre los primeros 4
-componentes principales.
+Grafiquemos el agrupamiento de K-medias proyectado sobre los primeros dos
+primeros componentes principales.
 
-```{r cache=F}
-pca_con_clusters <-
-  pca$Z %>% 
-  mutate(cluster_id = wine_clusterizado$cluster_id)
-
-graficar_pca <- function(pc_x, pc_y) {
+```{r cache = F}
+graficar_pca <- function(pc_x, pc_y, k) {
+  pca_con_clusters <-
+    pca$Z %>% 
+    mutate(cluster_id = categorias_por_k[[glue("{k}")]])
+  
   pcx_var <- ratio_a_porcentaje(pca$varianza_explicada[[pc_x]])
   pcy_var <- ratio_a_porcentaje(pca$varianza_explicada[[pc_y]])
 
@@ -126,20 +131,23 @@ graficar_pca <- function(pc_x, pc_y) {
     ggplot() +
     aes_string(x = pc_x, y = pc_y, color = "cluster_id") +
     geom_point() +
-    ggtitle(glue("Análisis de componentes principales: {pc_x} vs. {pc_y}")) +
+    ggtitle(glue("Análisis de componentes principales ({pc_x} vs. {pc_y}) y K-medias (k = {k})")) +
     xlab(glue("{pc_x} ({pcx_var}% varianza)")) +
     ylab(glue("{pc_y} ({pcy_var}% varianza)"))
   
-  ggsave(fig, filename = glue("imgs/{pc_x}_{pc_y}.png"))
+  ggsave(fig, filename = glue("imgs/{pc_x}_{pc_y}_k{k}.png"))
   return (fig)
 }
 
-fig1 <- graficar_pca("PC1", "PC2")
-fig2 <- graficar_pca("PC3", "PC4")
-
-print(fig1)
-print(fig2)
+for (k in names(categorias_por_k)) {
+  fig <- graficar_pca("PC1", "PC2", k)
+  print(fig)
+}
 ```
+
+Puede apreciarse que los agrupamientos más consistentes con la variación a lo
+largo de los dos primeros componentes principales son los generados con
+k = {3, 4}.
 
 ```
 # TODO: Borrar esto antes de entregar:

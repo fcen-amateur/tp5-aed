@@ -13,13 +13,13 @@ analisis_de_componentes_principales <- function(X) {
   varianza_total <- sum(autovalores)
   varianza_explicada <- autovalores / varianza_total
   names(varianza_explicada) <- nombres_componentes
-  componentes_principales <- (X %*% matriz_de_autovectores) %>% as_tibble
+  X_proyectada_a_los_PCs <- as_tibble(X %*% matriz_de_autovectores)
   colnames(componentes_principales) <- nombres_componentes
   
   return (list(
     centro_X = attr(X, "scaled:center"), # prcomp()$center
     desvio_X = attr(X, "scaled:scale"), # prcomp()$scale
-    Z = componentes_principales, # prcomp()$x
+    Z = X_proyectada_a_los_PCs, # prcomp()$x
     autovalores = autovalores,
     desvio_Z  = sqrt(autovalores), # prcomp()$sdev
     varianza_total = varianza_total, 

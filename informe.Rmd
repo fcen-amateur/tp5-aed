@@ -124,10 +124,25 @@ fig_loadings <-
   coord_cartesian(xlim = c(-0.5, 0.5), ylim = c(-0.5, 0.5))
 
 ggsave(fig_loadings, filename = "imgs/cargas_PC1_PC2.png")
-print(fig_loadings)
 ```
 
-Grafiquemos el agrupamiento de K-medias proyectado sobre los primeros dos
+![](imgs/cargas_PC1_PC2.png)
+
+El primer componente principal reúne principalmente la variación de fenoles
+en el vino, ya sea fenoles flavonoides o no flavonoides, además de otras
+características como la tonalidad y el contenido de prolina y de ácido málico.
+Algunas correlaciones deberían ser analizadas por un experto del vino:
+el contenido de proantocianinas parece altamente correlacionado con el de
+fenoles flavonoides y la proporción OD<sub>280</sub>/OD<sub>315</sub>,
+mientras que el de los fenoles no flavonoides con la alcalinidad de la ceniza.
+
+El segundo componente principal, por otro lado, resume aproximadamente
+otro conjunto de características: el contenido de magnesio, prolina, alcohol,
+la intensidad del color y la tonalidad. Algunas de estas variables se reparten
+entre PC1 y PC2, de modo que la interpretación química-vinícola de los PCs no es
+tan transparente y debe realizarse con precaución.
+
+Grafiquemos ahora el agrupamiento de K-medias proyectado sobre los primeros dos
 primeros componentes principales.
 
 ```{r}
@@ -139,28 +154,51 @@ graficar_pca <- function(pc_x, pc_y, k) {
   pcx_var <- ratio_a_porcentaje(pca$varianza_explicada[[pc_x]])
   pcy_var <- ratio_a_porcentaje(pca$varianza_explicada[[pc_y]])
 
+  n <- nrow(pca_con_clusters)
+  colorines <- c("RoyalBlue", "Black", "Tomato", "ForestGreen",
+                 "Chocolate", "HotPink", "GoldenRod")
+
+  title <- paste("Análisis de componentes principales ({pc_x} vs. {pc_y})",
+                 "Agrupamiento con K-medias (k = {k})", sep="\n")
+
   fig <- pca_con_clusters %>%
     ggplot() +
     aes_string(x = pc_x, y = pc_y, color = "cluster_id") +
     geom_point() +
-    ggtitle(glue("Análisis de componentes principales ({pc_x} vs. {pc_y}) y K-medias (k = {k})")) +
+    geom_hline(yintercept = 0, alpha = 0.25) +
+    geom_vline(xintercept = 0, alpha = 0.25) +
+    ggtitle(glue(title)) +
     xlab(glue("{pc_x} ({pcx_var}% varianza)")) +
-    ylab(glue("{pc_y} ({pcy_var}% varianza)"))
-  
-  ggsave(fig, filename = glue("imgs/{pc_x}_{pc_y}_k{k}.png"))
+    ylab(glue("{pc_y} ({pcy_var}% varianza)")) +
+    scale_color_manual(values = colorines)
+
+  ggsave(fig, filename = glue("imgs/{pc_x}_{pc_y}_k{k}.png"),
+         width = 18, height = 15, units = "cm")
   return (fig)
 }
 
 for (k in names(categorias_por_k)) {
   fig <- graficar_pca("PC1", "PC2", k)
 }
+
+# Comando para generar el GIF en Linux, con ImageMagick:
+# $ convert -delay 200 -loop 0 imgs/PC1_PC2*png imgs/PC1_PC2.gif
 ```
 
-Puede apreciarse que los agrupamientos más consistentes con la variación a lo
-largo de los dos primeros componentes principales son los generados con
-k = 3:
+El agrupamiento que juzgamos más interesante en la proyección al espacio de los
+dos primeros componentes principales es el generado con k = 3, donde se
+distinguen dos grupos bien diferenciados en los cuadrantes "sudoeste" y "sudeste"
+y un gran grupo en el "hemisferio norte" del gráfico. Este último grupo conforma
+una suerte de continuo, uniendo a los otros dos, y al no haber cortes bruscos
+en la distribución de datos en este subespacio de dos dimensiones, la
+preferencia de k = 3 es necesariamente arbitraria.
 
 ![](imgs/PC1_PC2.gif)
+
+(**Nota**: esta distribución de "tipos" en forma de U, cuyos extremos están bien
+diferenciados, pero unidos en el centro por un continuo de variación sin
+cortes bruscos, recuerda al concepto de _ring species_ en biología
+evolutiva y las dificultades que conlleva a la hora de subclasificar.)
 
 ```
 # TODO: Borrar esto antes de entregar:

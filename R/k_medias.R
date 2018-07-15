@@ -1,6 +1,8 @@
 library(glue)
 
 k_medias <- function(df, k, max_iteraciones = 50, verboso = F) {
+  if (verboso) { print(glue("K-medias con k = {k}")) }
+  
   xvars <- colnames(select(df, -obs_id))
   p <- length(xvars)
   

@@ -185,6 +185,8 @@ for (k in names(categorias_por_k)) {
 # $ convert -delay 200 -loop 0 imgs/PC1_PC2*png imgs/PC1_PC2.gif
 ```
 
+![](imgs/PC1_PC2.gif)
+
 El agrupamiento que juzgamos más interesante en la proyección al espacio de los
 dos primeros componentes principales es el generado con k = 3, donde se
 distinguen dos grupos bien diferenciados en los cuadrantes "sudoeste" y "sudeste"
@@ -192,8 +194,6 @@ y un gran grupo en el "hemisferio norte" del gráfico. Este último grupo confor
 una suerte de continuo, uniendo a los otros dos, y al no haber cortes bruscos
 en la distribución de datos en este subespacio de dos dimensiones, la
 preferencia de k = 3 es necesariamente arbitraria.
-
-![](imgs/PC1_PC2.gif)
 
 (**Nota**: esta distribución de "tipos" en forma de U, cuyos extremos están bien
 diferenciados, pero unidos en el centro por un continuo de variación sin

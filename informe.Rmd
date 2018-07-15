@@ -58,7 +58,7 @@ obtener unos pocos ejes (componentes principales o PCs), sobre los cuales
 proyectar los datos y poder así visualizar el agrupamiento.
 
 ```{r}
-pca <- analisis_de_componentes_principales(select(wine_escalado, -obs_id))
+pca <- analisis_de_componentes_principales(wine_escalado)
 ```
 
 Observemos el porcentaje de varianza explicado al considerar progresivamente más
@@ -98,7 +98,7 @@ varianza:
 vectores_de_carga <-
   pca$matriz_de_autovectores %>%
   as_tibble %>%
-  mutate(predictor = names(select(wine, -obs_id))) %>%
+  mutate(predictor = names(wine)) %>%
   rename(PC1 = V1, PC2 = V2)
 
 fig_loadings <-

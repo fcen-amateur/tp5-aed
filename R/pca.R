@@ -14,7 +14,7 @@ analisis_de_componentes_principales <- function(X) {
   varianza_explicada <- autovalores / varianza_total
   names(varianza_explicada) <- nombres_componentes
   X_proyectada_a_los_PCs <- as_tibble(X %*% matriz_de_autovectores)
-  colnames(componentes_principales) <- nombres_componentes
+  colnames(X_proyectada_a_los_PCs) <- nombres_componentes
   
   return (list(
     centro_X = attr(X, "scaled:center"), # prcomp()$center

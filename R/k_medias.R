@@ -1,7 +1,7 @@
 library(glue)
 
 k_medias <- function(df, k, max_iteraciones = 50, verboso = F) {
-  xvars <- colnames(select(df, -obs_id))
+  xvars <- colnames(df)
   p <- length(xvars)
   
   # Inicializamos los centroides eligiendo k puntos del dataset al azar
@@ -32,12 +32,10 @@ k_medias <- function(df, k, max_iteraciones = 50, verboso = F) {
     
     df_categorizado <-
       df %>%
-      select(-obs_id) %>%
       mutate(
         distancias_a_centroides = pmap(., ~distancia_a_los_centroides(c(...))),
         centr_id = map_chr(distancias_a_centroides, elegir_centroide_mas_cercano)
       ) %>%
-      mutate(obs_id = df$obs_id) %>%
       select(-distancias_a_centroides)
     
     centroides_recalculados <-

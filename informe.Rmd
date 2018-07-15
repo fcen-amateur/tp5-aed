@@ -118,7 +118,7 @@ print(fig_loadings)
 Grafiquemos el agrupamiento de K-medias proyectado sobre los primeros dos
 primeros componentes principales.
 
-```{r cache = F}
+```{r}
 graficar_pca <- function(pc_x, pc_y, k) {
   pca_con_clusters <-
     pca$Z %>% 
@@ -141,13 +141,14 @@ graficar_pca <- function(pc_x, pc_y, k) {
 
 for (k in names(categorias_por_k)) {
   fig <- graficar_pca("PC1", "PC2", k)
-  print(fig)
 }
 ```
 
 Puede apreciarse que los agrupamientos más consistentes con la variación a lo
 largo de los dos primeros componentes principales son los generados con
-k = {3, 4}.
+k = 3:
+
+![](imgs/PC1_PC2.gif)
 
 ```
 # TODO: Borrar esto antes de entregar:

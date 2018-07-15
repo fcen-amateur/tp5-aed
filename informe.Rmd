@@ -3,14 +3,15 @@ title: "TP5 Análisis Exploratorio de Datos"
 author: "Barrera Borla, Berros & Duarte"
 date: "16 de julio de 2018 EC"
 output:
-  pdf_document: default
   html_document: default
-runtime: shiny
+  pdf_document: 
+    latex_engine: xelatex
+# runtime: shiny
 ---
 
 Cargamos librerías y código auxiliar:
 
-```{r}
+```{r warning = F, message = F}
 library(tidyverse)
 library(glue)
 
@@ -114,7 +115,7 @@ componentes principales.
 
 ```{r cache=F}
 pca_con_clusters <-
-  pca$X %>% 
+  pca$Z %>% 
   mutate(cluster_id = wine_clusterizado$cluster_id)
 
 graficar_pca <- function(pc_x, pc_y) {

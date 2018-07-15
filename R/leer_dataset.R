@@ -1,4 +1,4 @@
-library(tidyverse)
+library(readr)
 
 leer_dataset <- function(dataset) {
   if (dataset == "vino" ||
@@ -37,8 +37,9 @@ leer_dataset <- function(dataset) {
   
     df <- read_delim(
       "data/wine.txt", delim = " ", col_types = tipos_columnas) %>%
-      plyr::rename(nombres_castellano) %>%
-      rowid_to_column("obs_id")
+#      rowid_to_column("obs_id") %>%
+      plyr::rename(nombres_castellano)
+    
   } else if (
     dataset == "planeta_y_anillo" ||
     dataset == "data/planeta_y_anillo.rds") {

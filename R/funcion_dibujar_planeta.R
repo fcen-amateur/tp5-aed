@@ -29,12 +29,6 @@ dibujar_planeta <- function(puntos) {
   rifa <- sample( 1:length(x), replace=F ) 
 
   planeta_y_anillo <- tibble("x" = x[c(rifa)],"y"= y[c(rifa)] )
-
-  saveRDS(planeta_y_anillo,"data/planeta_y_anillo1.rds")
-
-  planeta_y_anillo %>% ggplot() +
-    geom_point() +
-    aes(x=x,y=y)
-  ggsave("imgs/planeta1.png")
+  return(planeta_y_anillo)
 }
 

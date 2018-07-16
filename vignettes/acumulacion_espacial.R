@@ -114,6 +114,7 @@ graficar_con_ruido <-  function(X,etiqueta=" ") {
     aes(x=x,y=y,color=as.factor(clase),shape=ruido ) +
     geom_point() +
     scale_color_discrete( name="Clase" ) +
+    scale_shape_manual(values=c(16,1)) +
     ggtitle(etiqueta)
 }
 

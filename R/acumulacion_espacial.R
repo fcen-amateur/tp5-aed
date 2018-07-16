@@ -1,22 +1,3 @@
-library("tidyverse")
-
-set.seed(42)
-
-# El proceso de etiquetado requiere constantemente tomar distancias, respcto a los puntos no etiquetados. Para no tomar distancias innecesarias, es importante mantener algunas convenciones. 
-# Los numeros de observación sirven para darle una identidad única a las distancias y no repetir d(A,B) para hacer d(B,A). El algoritmo nunca debe trabajar con los puntos ya etiquetados.
-# El primero paso, entonces, es introducir una columna de etiquetas "clase" y etiquetar todos los puntos en la clase 0. Siempre vamos a condicionar el trabajo sobre nuevos puntos a que esta sea su clase.
-
-planeta_y_anillo <- readRDS("data/planeta_y_anillo1.rds")
-
-#distancia_a_un_punto <- function ( X, ind) {
-#  X <- X[,c(1,2)]
-#  p <- as.list(X[ind,])
-#  X <- as.matrix(X-p)
-#  return (  X^2  %*% c(1,1) )  
-#}
-
-
-#Para que sea más fácil iterar el algoritmo principal, las tareas de arranque las hace este: Añade la columna de clase y una que indica si el punto es ruido. Esta va a servir para poder ir restando los puntos ya evaluados y que no parezca que los remanentes son ruido cuando en realidad ya son parte de una clase que fue borrada. Además, elige el primer integrante de la primera clase.
 
 preparar_para_acumular <- function(X) {
 # Este algoritmo espera una tabla que contiene las columnas x e y con las coordenadas de los puntos. Es fácilmente adaptable a n dimensiones pero en su versión actual es bidimensional.
@@ -91,7 +72,3 @@ acumulacion <- function( X, eps, umbral, clase_actual=1,contador=0 ) {
 	 )
 }
 
-set.seed(42)
-
-X <- preparar_para_acumular( planeta_y_anillo )
-X_ac <- acumulacion(X,0.8,2)

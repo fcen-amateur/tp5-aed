@@ -21,7 +21,7 @@ k_medias <- function(df, k, max_iteraciones = 50, verboso = F) {
     
     distancia_a_los_centroides <- function(dato) {
       dato_repetido <- matrix(dato, ncol = p, nrow = k, byrow = T)
-      distancias_al_cuadrado <- (select(centroides, -centr_id) - dato_repetido)^2
+      distancias_al_cuadrado <- (select(centroides, -centr_id) - dato_repetido)^2 %>% as.matrix()
       normas_2 <- (distancias_al_cuadrado %*% rep(1, p))^(1/2) %>% c
       distancias <- normas_2 %>% as_tibble %>% mutate(centr_id = centroides$centr_id)
       return (distancias)
@@ -35,8 +35,8 @@ k_medias <- function(df, k, max_iteraciones = 50, verboso = F) {
     df_categorizado <-
       df %>%
       mutate(
-        distancias_a_centroides = pmap(., ~distancia_a_los_centroides(c(...))),
-        centr_id = map_chr(distancias_a_centroides, elegir_centroide_mas_cercano)
+        distancias_a_centroides  =  pmap(., ~distancia_a_los_centroides(c(...))),
+        centr_id  =  map_chr(distancias_a_centroides, elegir_centroide_mas_cercano)
       ) %>%
       select(-distancias_a_centroides)
     

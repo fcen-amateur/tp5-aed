@@ -106,7 +106,8 @@ graficar <-  function(X,etiqueta=" ") {
     aes(x=x,y=y,color=as.factor(clase) ) +
     geom_point() +
     scale_color_discrete( name="Clase" ) +
-    ggtitle(etiqueta)
+    ggtitle(etiqueta) +
+    coord_fixed()
 }
 
 graficar_con_ruido <-  function(X,etiqueta=" ") {
@@ -115,7 +116,8 @@ graficar_con_ruido <-  function(X,etiqueta=" ") {
     geom_point() +
     scale_color_discrete( name="Clase" ) +
     scale_shape_manual(values=c(16,1)) +
-    ggtitle(etiqueta)
+    ggtitle(etiqueta) +
+    coord_fixed()
 }
 
 # Como se observa gráficamente, la baja cantidad de puntos no es un problema, se identifica correctamente los conjuntos aún con 200 puntos. 

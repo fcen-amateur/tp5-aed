@@ -195,6 +195,11 @@ conforma un continuo y, al no haber cortes bruscos en la distribución de datos
 en este subespacio de dos dimensiones, la preferencia de $k = 3$ es
 necesariamente arbitraria.
 
+Vale aclarar, que aunque la repetición de colores "entre cuadro y cuadro" de la
+anumación remite a una continuidad entre las clases que cada uno representa, el
+algoritmo "k medias" _no garantiza ninguna relación entre las clases obtenidas
+con distintos valores de k_, y no merece interpretación alguna.
+
 (**Nota**: esta distribución de "tipos" en forma de U, cuyos extremos están bien
 diferenciados, pero unidos en el centro por un continuo de variación sin
 cortes bruscos, recuerda al concepto de _ring species_ en biología

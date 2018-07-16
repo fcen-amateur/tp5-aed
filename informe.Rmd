@@ -253,7 +253,7 @@ planeta_clasificado %>% ggplot( ) +
 
 
 
-![](imgs/GIF/planeta2.gif)
+![](imgs/GIF/planeta.gif)
 
 ### Efectos de las Condiciones Adversas Sobre el Resultado
 

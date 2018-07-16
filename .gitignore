@@ -1,0 +1,7 @@
+# Archivos de latex
+*.tex
+*.log
+
+.Rhistory
+*_cache/
+*_files/

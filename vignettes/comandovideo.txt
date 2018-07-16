@@ -1,0 +1,1 @@
+ffmpeg -framerate 30 -i planeta%d.png -c:v libx264 -r 30 video.mp4   

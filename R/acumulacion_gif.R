@@ -22,7 +22,7 @@ preparar_para_acumular <- function(X) {
 # Este algoritmo espera una tabla que contiene las columnas x e y con las coordenadas de los puntos. Es fácilmente adaptable a n dimensiones pero en su versión actual es bidimensional.
   X <- mutate (X, clase = as.integer(0) , ruido = F, evaluado = F)
   inicial <- sample( 1:length(X$x),1  )
-  X[inicial,]$clase <- 1
+  X[inicial,]$clase <- as.integer(1)
   return(X)
 }
 
@@ -40,7 +40,7 @@ buscar_p <- function(X,clase_actual) {
   }
   for (i in  1:nrow(X) ) {
     vec <- X[i,]
-    if (!vec$evaluado && vec$clase == 0) { return( list(indice=i,clase=clase_actual+1,clase_nueva=T, termina = F)  )}
+    if (!vec$evaluado && vec$clase == 0) { return( list(indice=i,clase=clase_actual + as.integer(1),clase_nueva=T, termina = F)  )}
     }
   if ( prod(X$evaluado) == 1 ) { return( list(indice=-1,clase=-1,clase_nueva=F,termina=T) )  }
 }
@@ -74,7 +74,7 @@ vecinos_p <- function( X, indice, clase_actual, eps, umbral ) {
   return(X_tentativa)
 }
 
-acumulacion <- function( X, eps, umbral, clase_actual=1,contador=0 ) {
+acumulacion <- function( X, eps, umbral, clase_actual=as.integer(1),contador=as.integer(0) ) {
 #Este algoritmo organiza el proceso, la idea es que sea recursivo. Espera una tabla preparada previamente con el algoritmo "preparar para acumular".
   busqueda <- buscar_p(X,clase_actual)
   if (busqueda$termina==T) {return (X)}
@@ -86,9 +86,11 @@ acumulacion <- function( X, eps, umbral, clase_actual=1,contador=0 ) {
        else {
 	    X <-  vecinos_p(X, indice_punto, clase_actual, eps, umbral )
        }
+  saveRDS( X, paste0("data/GIF/","planeta",as.character( contador ),".rds") )
   return(
-	 acumulacion(X,eps,umbral,clase_actual,contador+1)
+	 acumulacion(X,eps,umbral,clase_actual,contador+ as.integer(1) )
 	 )
+
 }
 
 set.seed(42)

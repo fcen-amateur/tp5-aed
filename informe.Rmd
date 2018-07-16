@@ -20,6 +20,9 @@ source("R/leer_dataset.R")
 source("R/pca.R")
 source("R/k_medias.R")
 source("R/helpers.R")
+source("R/dbscan.R")
+source("R/funcion_dibujar_planeta.R")
+source("vignettes/acumulacion_espacial.R")
 ```
 
 # 1.1 PCA y K-medias
@@ -41,10 +44,10 @@ Agrupamos los datos utilizando el algoritmo **K-medias**. Tras algunas pruebas
 a mano, decidimos que el dataset puede dividirse en 3 grupos, pero de todos
 modos computamos la clusterización para varios valores de k:
 
-```{r cache = T}
+```{r, cache=T}
 resultados_k_means <-
   tibble(k = 2:6) %>%
-  mutate(categorias = map(k, ~k_medias(df = wine_escalado, k = .x, verboso = T))) %>%
+  mutate(categorias = map(k, ~k_medias(wine_escalado, k = .x, verboso = T))) %>%
   mutate(categorias = map(categorias, ~.x$cluster_id))
 
 categorias_por_k <- resultados_k_means$categorias
@@ -57,38 +60,34 @@ Vamos a realizar entonces un **análisis de componentes principales (PCA)** para
 obtener unos pocos ejes (componentes principales o PCs), sobre los cuales
 proyectar los datos y poder así visualizar el agrupamiento.
 
-```{r}
+```{r pca, cache=T}
 pca <- analisis_de_componentes_principales(wine_escalado)
 ```
 
 Observemos el porcentaje de varianza explicado al considerar progresivamente más
 componentes principales:
 
-```{r}
+```{r porcentaje, cache=T}
 porcentaje_varianza <- tibble(
   PC = names(pca$varianza_explicada),
-  porcentaje_varianza_pc = pca$varianza_explicada * 100,
-  porcentaje_varianza_acumulada = cumsum(porcentaje_varianza_pc)
+  porcentaje_varianza = pca$varianza_explicada * 100,
+  porcentaje_varianza_acumulada = cumsum(porcentaje_varianza)
 )
 
 porcentaje_varianza %>%
-  ggplot(aes(x = PC, y = porcentaje_varianza_acumulada)) +
-  geom_point() +
-  geom_label(aes(x = 1:13, y = porcentaje_varianza_acumulada-5,
-                 label = paste0(round(porcentaje_varianza_pc, 2), "%")), size = 3) +
-  labs(
-    title = "4 PCs acumulan más del 70% de varianza del dataset",
-    subtitle = "Debajo de cada punto, el % parcial de la varianza explicada.",
-    y = "% Varianza Total Acumulada") +
-  geom_hline(
-    yintercept = 73.6, color = "SteelBlue", linetype = "dashed", size = 0.4) +
-  geom_vline(
-    xintercept = 4, color = "SteelBlue", linetype = "dashed", size = 0.4) +
-  scale_x_discrete(limits = porcentaje_varianza$PC) +
-  scale_y_continuous(breaks = seq(0, 100, by = 10), limits = c(0, 100))
+  ggplot() +
+    aes(x = PC, y = porcentaje_varianza_acumulada) +
+    geom_point() +
+    ggtitle("4 PCs acumulan más del 70% de varianza del dataset") +
+    geom_hline(yintercept = 73.6, color = "SteelBlue",
+               linetype = "dashed", size = 0.4) +
+    geom_vline(xintercept = 4, color = "SteelBlue",
+               linetype = "dashed", size = 0.4) +
+    scale_x_discrete(limits = porcentaje_varianza$PC) +
+    scale_y_continuous(breaks = seq(0, 100, by = 10), limits = c(0, 100))
 ```
 
-Puede apreciarse que con 4 componentes principales resumimos más del 70% (~73.6%) de la
+Puede apreciarse que con 4 componentes principales resumimos más del 70% de la
 varianza total del dataset. Sin embargo, la estructura más interesante se
 observa con los PC1 y PC2, de modo que nos limitaremos a graficar esos
 componentes.
@@ -105,13 +104,24 @@ vectores_de_carga <-
   mutate(predictor = names(wine)) %>%
   rename(PC1 = V1, PC2 = V2)
 
-fig_loadings <- vectores_de_carga %>%
-  ggplot(aes(PC1, PC2)) +
+fig_loadings <-
+  vectores_de_carga %>%
+  ggplot(aes(PC1, PC2))
+
+for (i in 1:nrow(vectores_de_carga)) {
+  xend <- vectores_de_carga[[i, "PC1"]]
+  yend <- vectores_de_carga[[i, "PC2"]]
+  fig_loadings <-
+    fig_loadings +
+    geom_segment(x = 0, y = 0, xend = xend, yend = yend,
+                 alpha = 0.35, color = "SteelBlue")
+}
+
+fig_loadings <-
+  fig_loadings +
   geom_point() +
   ggtitle("Carga por variable en los dos primeros componentes principales") +
-  geom_segment(mapping = aes(x = 0, y = 0, xend = PC1, yend = PC2),
-               alpha = 0.35, color = "SteelBlue") +
-  geom_label(mapping = aes(label = predictor, y = PC2 + 0.03), alpha = 0.65) +
+  geom_label(mapping = aes(label = predictor), alpha = 0.65) +
   geom_hline(yintercept = 0, alpha = 0.25) +
   geom_vline(xintercept = 0, alpha = 0.25) +
   coord_cartesian(xlim = c(-0.5, 0.5), ylim = c(-0.5, 0.5))
@@ -138,7 +148,7 @@ tan transparente y debe realizarse con precaución.
 Grafiquemos ahora el agrupamiento de K-medias proyectado sobre los primeros dos
 primeros componentes principales.
 
-```{r}
+```{r, cache=T}
 graficar_pca <- function(pc_x, pc_y, k) {
   pca_con_clusters <-
     pca$Z %>% 
@@ -193,32 +203,98 @@ diferenciados, pero unidos en el centro por un continuo de variación sin
 cortes bruscos, recuerda al concepto de _ring species_ en biología
 evolutiva y las dificultades que conlleva a la hora de subclasificar.)
 
-```
-# TODO: Borrar esto antes de entregar:
 
-# 1.2
+
+
+
 # Ejercicio 2 (DBSCAN)
 
-# Considere el siguiente esquema de generación de datos:
-#   1. Primer conjunto (“el planeta”), generar 100 datos en R 2 con la siguiente
-#      receta:
-#   (a) Generar n = 100 radios R i con distribución uniforme U (0, 1).
-#   (b) Generar n = 100 ángulos θ i con distribución uniforme U (0, 2π).
-#   (c) En base a eso, definir X i ∈ R 2 como X i = (R i cos(θ i ), R i sin(θ i )).
+## Generación del Planeta
 
-#   2. Segundo conjunto (“la órbita”), generar 100 datos en R 2 con la siguiente
-#      receta:
-#   (a) Generar n = 100 radios R i con distribución uniforme U (1.5, 2.5).
-#   (b) Generar n = 100 ángulos θ i con distribución uniforme U (0, 2π).
-#   (c) En base a eso, definir X i ∈ R 2 como X i = (R i cos(θ i ), R i sin(θ i )).
+  Para obtener los conjuntos pedidos, dado que es conveniente ir experimentando con diversas cantidades de puntos, es conveniente definir una función que nos da el planeta y su anillo tomando como parámetro la cantidad de puntos que el cuerpo de este debe contener. Esta función es `R/funcion_dibujar_planeta.R`.
 
-# Plotear en un mismo gráfico ambos datasets. Implemente un esquema
-# de DBSCAN, con parámetros bien elegidos, para poder “separar” los dos
-# conjuntos (“planeta” y “órbita”) en dos clusters.
 
-# Comentario extra de Lucas:
+```{r armado del planeta, cache=T}
+planeta_chico <- dibujar_planeta(200)
+planeta_y_anillo <- dibujar_planeta(500)
 
-# 2) TP5 Ejercicio 2: para la órbita, usen muchos puntos, quizás 1000, y
-# eventualmente un épsilon pequeño, para que quede bien marcada la diferencia
-# entre ambos.
+planeta_y_anillo %>% ggplot() +
+  aes(x=x,y=y) +
+  geom_point() +
+  ggtitle("Planeta sin Acumular")
+```
+
+
+## Clasificación de la Órbita y el Planeta
+
+ Realizamos dos implementaciones del algoritmo que constan en la carpeta `R`. La primera se llama `R/dbscan.R` y corresponde a lo visto en clase. Además, hicimos un intento con un algoritmo que realizase el cálculo de las distancias la menor cantidad de veces posibles y minimizase los recorridos sobre la tabla, este (`R/acumulacion_espacial.R`) resultó ser apreciablemente más lento y complejo pero parece tolerar mejor las condiciones adversas. 
+  Es de notar que el problema fue específicamente diseñado para que este algoritmo lo resuelva con facilidad y por lo tanto no pusimos realmente bajo demanda ninguna de las dos implementaciones (a pesa de eso, hacemos un intento al final con el planeta de pocos puntos). 
+  Uno de los atributos más interesantes de este algoritmo es la posibilidad de determinar que los puntos problemáticos son "ruido", peron en el caso del planeta con 1000 puntos esto no es necesario y al final de la evaluación no hay puntos clasificados como ruido. 
+
+
+
+```{r clasificación del planeta, cache=T}
+
+planeta_clasificado <- planeta_y_anillo %>%
+  mutate(clase = dbscan(planeta_y_anillo[c("x", "y")], min_pts = 4, epsilon = .8))
+
+planeta_clasificado %>% ggplot( ) +
+  aes(x=x,y=y) +
+  geom_point( aes(color=as.factor(clase)) ) +
+  scale_color_brewer(palette = "Set2", name="Clase") +
+  ggtitle("Planeta ya Acumulado") 
+
+```
+
+### Animación de las Etapas del Proceso
+
+  Para ver mejor cómo funciona el algoritmo y aprovechando que este sigue una hermenéutica de corte netamente gráfico, realizamos una animación de su progreso. 
+  El método empleado fue guardar el estado del conjunto de datos en cada recursión del algoritmo y realizar un gráfico de cada uno de esos estados, cosa que cosnta en `R/armar_gif.R` para la obtención de las matrices y en `R/armar_gif.R` para la obtención de los gráficos. Después usamos el comando `convert` de la suite *imagemagick*.
+
+
+
+![](imgs/GIF/planeta2.gif)
+
+### Efectos de las Condiciones Adversas Sobre el Resultado
+
+  Es interesante ver que el algoritmo *converge* a una menor cantidad de clases en tanto el parámetro *radio de los entornos de evaluación* que llamamos `epsilon` se ajusta correctamente a la densidad típica de los puntos. Ante la situación de reducción de este valor los algoritmos mostraron una sensibilidad diferente. 
+  Evidentemnte, el planeta con cantidad reducida de puntos introduce antes los inconvenientes. 
+
+
+
+```{r planetas pequeños, warnings=F, cache=T}
+
+algo1_1 <- preparar_para_acumular( planeta_chico )
+algo1_1 <- acumulacion(algo1_1,0.8,4)
+
+algo1_2 <- preparar_para_acumular( planeta_chico )
+algo1_2 <- acumulacion(algo1_2,0.4,4)
+
+algo2_1 <- planeta_chico %>%
+  mutate(clase = dbscan(planeta_chico[c("x", "y")], min_pts = 4, epsilon = 0.8)) %>%
+  mutate(ruido = ifelse(clase==-1,T,F))
+
+algo2_2 <- planeta_chico %>%
+  mutate(clase = dbscan(planeta_chico[c("x", "y")], min_pts = 4, epsilon = 0.4)) %>%
+  mutate(ruido = ifelse(clase==-1,T,F))
+
+graficar_con_ruido(algo1_1,"Primer Algoritmo: Epsilon Suficiente (0,8)")
+graficar_con_ruido(algo1_2,"Primer Algoritmo: Epsilon Reducido (0.4)")
+
+graficar_con_ruido(algo2_1,"Segundo Algoritmo: Epsilon Suficiente (0.8)")
+graficar_con_ruido(algo2_2,"Segundo Algoritmo: Epsilon Reducido (0.4)")
+```
+
+
+  Un efecto interesante observado es cómo en el *Algoritmo 2 con epsilon suficiente* el algoritmo logra no crear una tercera clase que no sería ni anillo ni planeta recurriendo a clasficar varios  puntos como ruido, mostrando la utilidad de incluir este concepto en el procedimiento. 
+
+
+  Vale la pena repetir esta evaluación bajando el umbral de tolerancia y comprobar que efectivamente, en caso de no clasificar los puntos como ruido aparecen pequeñas clases que sabemos que no se condicen con el patrón que elegimos para construir el conjunto.  
+  
+```{r}
+algo2_1 <- planeta_chico %>%
+  mutate(clase = dbscan(planeta_chico[c("x", "y")], min_pts = 2, epsilon = 0.8)) %>%
+  mutate(ruido = ifelse(clase==-1,T,F))
+
+graficar_con_ruido(algo2_1,"Segundo Algoritmo: Epsilon Suficiente (0.8) y umbral reducido")
 ```

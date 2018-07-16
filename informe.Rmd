@@ -145,7 +145,7 @@ la intensidad del color y la tonalidad. Algunas de estas variables se reparten
 entre PC1 y PC2, de modo que la interpretación química-vinícola de los PCs no es
 tan transparente y debe realizarse con precaución.
 
-Grafiquemos ahora el agrupamiento de K-medias proyectado sobre los primeros dos
+Grafiquemos ahora el agrupamiento de K-medias proyectado sobre los dos
 primeros componentes principales.
 
 ```{r, cache=T}

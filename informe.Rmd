@@ -232,7 +232,7 @@ planeta_y_anillo %>% ggplot() +
 
  Realizamos dos implementaciones del algoritmo que constan en la carpeta `R`. La primera se llama `R/dbscan.R` y corresponde a lo visto en clase. Además, hicimos un intento con un algoritmo que realizase el cálculo de las distancias la menor cantidad de veces posibles y minimizase los recorridos sobre la tabla, este (`R/acumulacion_espacial.R`) resultó ser apreciablemente más lento y complejo pero parece tolerar mejor las condiciones adversas. 
   Es de notar que el problema fue específicamente diseñado para que este algoritmo lo resuelva con facilidad y por lo tanto no pusimos realmente bajo demanda ninguna de las dos implementaciones (a pesar de eso, hacemos un intento al final con el planeta de pocos puntos). 
-  Uno de los atributos más interesantes de este algoritmo es la posibilidad de determinar que los puntos problemáticos son "ruido", peron en el caso del planeta con 1000 puntos esto no es necesario y al final de la evaluación no hay puntos clasificados como ruido. 
+  Uno de cos atributos más interesantes de este algoritmo es la posibilidad de determinar que los puntos problemáticos son "ruido", pero en el caso del planeta con 1000 puntos esto no es necesario y al final de la evaluación no hay puntos clasificados como ruido. 
 
 
 

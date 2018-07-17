@@ -1,4 +1,5 @@
-source("R/funcion_dibujar_planeta")
+source("R/funcion_dibujar_planeta.R")
+
 set.seed(42)
 
 planeta_y_anillo <- dibujar_planeta(200) 

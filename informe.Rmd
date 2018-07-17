@@ -213,7 +213,7 @@ evolutiva y las dificultades que conlleva a la hora de subclasificar.)
 
 ## Generación del Planeta
 
-  Para obtener los conjuntos pedidos, dado que es conveniente ir experimentando con diversas cantidades de puntos, es conveniente definir una función que nos da el planeta y su anillo tomando como parámetro la cantidad de puntos que el cuerpo de este debe contener. Esta función es `R/funcion_dibujar_planeta.R`.
+  Para obtener los conjuntos pedidos, dado que es conveniente ir experimentando con diversas cantidades de puntos, fue definida una función que nos da el planeta y su anillo tomando como parámetro la cantidad de puntos que el cuerpo de este debe contener. Esta función es `R/funcion_dibujar_planeta.R`.
 
 
 ```{r armado del planeta, cache=T}
@@ -266,7 +266,7 @@ planeta_clasificado %>% ggplot( ) +
 
 
 
-```{r planetas pequeños, warnings=F, cache=T}
+```{r planetas pequeños, warnings=F, cache=F}
 
 algo1_1 <- preparar_para_acumular( planeta_chico )
 algo1_1 <- acumulacion(algo1_1,0.8,4)
@@ -275,11 +275,11 @@ algo1_2 <- preparar_para_acumular( planeta_chico )
 algo1_2 <- acumulacion(algo1_2,0.4,4)
 
 algo2_1 <- planeta_chico %>%
-  mutate(clase = dbscan(planeta_chico[c("x", "y")], min_pts = 4, epsilon = 0.8)) %>%
+  mutate(clase = dbscan(planeta_chico[c("x", "y")], min_pts = 5, epsilon = 0.8)) %>%
   mutate(ruido = ifelse(clase==-1,T,F))
 
 algo2_2 <- planeta_chico %>%
-  mutate(clase = dbscan(planeta_chico[c("x", "y")], min_pts = 4, epsilon = 0.4)) %>%
+  mutate(clase = dbscan(planeta_chico[c("x", "y")], min_pts = 5, epsilon = 0.4)) %>%
   mutate(ruido = ifelse(clase==-1,T,F))
 
 graficar_con_ruido(algo1_1,"Primer Algoritmo: Epsilon Suficiente (0.8)")
@@ -290,15 +290,15 @@ graficar_con_ruido(algo2_2,"Segundo Algoritmo: Epsilon Reducido (0.4)")
 ```
 
 
-  Un efecto interesante observado es cómo en el *Algoritmo 2 con epsilon suficiente* el algoritmo logra no crear una tercera clase que no sería ni anillo ni planeta recurriendo a clasficar varios  puntos como ruido, mostrando la utilidad de incluir este concepto en el procedimiento. 
+  Un efecto interesante observado es cómo en el *Algoritmo 2 con epsilon suficiente* el algoritmo logra no crear un exceso de clases que no serían ni anillo ni planeta recurriendo a clasficar varios  puntos como ruido, mostrando la utilidad de incluir este concepto en el procedimiento. La única clase que no se corresponde con el patrón con el que fue generado es la clase 3 y esta forma un pequeño cúmulo claramente diferenciado. El primer algoritmo logró asociar al cuerpo del planeta este cúmulo. 
 
 
-  Vale la pena repetir esta evaluación bajando el umbral de tolerancia y comprobar que efectivamente, en caso de no clasificar los puntos como ruido aparecen pequeñas clases que sabemos que no se condicen con el patrón que elegimos para construir el conjunto.  
+  Vale la pena repetir la evaluación bajando el umbral de tolerancia y comprobar que efectivamente, en caso de no clasificar los puntos como ruido proliferan pequeñas clases que sabemos que no se condicen con el diseño que elegimos para construir el conjunto.  
   
-```{r}
+```{r umbral reducido }
 algo2_1 <- planeta_chico %>%
-  mutate(clase = dbscan(planeta_chico[c("x", "y")], min_pts = 2, epsilon = 0.8)) %>%
+  mutate(clase = dbscan(planeta_chico[c("x", "y")], min_pts = 8, epsilon = 0.8)) %>%
   mutate(ruido = ifelse(clase==-1,T,F))
 
-graficar_con_ruido(algo2_1,"Segundo Algoritmo: Epsilon Suficiente (0.8) y umbral reducido")
+graficar_con_ruido(algo2_1,"Segundo Algoritmo: Epsilon Suficiente (0.8) y Umbral Reducido")
 ```

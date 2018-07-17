@@ -1,4 +1,5 @@
 library("tidyverse")
+library("RColorBrewer")
 
 colores <- brewer.pal(3,"Set2")
 
@@ -31,8 +32,9 @@ while (contador <= 999) {
                                   "2" = "Anillo")
                          ) +
       ggtitle("Evolución de la Acumulación") +
+      coord_fixed()
       
-    ggsave( paste0("imgs/GIF/planeta",str_pad(i,4,"left","0"),".png") )
+    ggsave( paste0("imgs/GIF/planeta",str_pad(i,4,"left","0"),".png"), width=8.5, height=7 )
   }
 
 }
